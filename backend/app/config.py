@@ -5,16 +5,20 @@ import os
 load_dotenv()
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite:///./tms.db"
-    JWT_SECRET_KEY: str = "your-secret-key-change-in-production-min-32-chars-long!"
+    # ... existing settings (DATABASE_URL, JWT_SECRET_KEY, etc.)
+    DATABASE_URL: str = ""
+    JWT_SECRET_KEY: str = ""
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     UPLOAD_DIR: str = "uploads"
-    FRONTEND_URL: str = "http://localhost:5173"
-    SUPABASE_BUCKET: str = "complaints"
+    
+    # Add these two new lines
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+    SUPABASE_BUCKET: str = "complaint-videos"  # Optional default
 
     class Config:
         env_file = ".env"
+        case_sensitive = False
 
 settings = Settings()
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
