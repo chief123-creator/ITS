@@ -12,6 +12,8 @@ import DashboardPage from "@/pages/dashboard/DashboardPage";
 import CameraGuidelinesPage from "@/pages/camera/CameraGuidelinesPage";
 import CameraRecordPage from "@/pages/camera/CameraRecordPage";
 import VideoPreviewPage from "@/pages/camera/VideoPreviewPage";
+import PhotoCapturePage from "@/pages/photo/PhotoCapturePage";
+import PhotoConfirmPage from "@/pages/photo/PhotoConfirmPage";
 import ActionSelectPage from "@/pages/complaint/ActionSelectPage";
 import ComplaintStatusPage from "@/pages/complaint/ComplaintStatusPage";
 import HistoryPage from "@/pages/history/HistoryPage";
@@ -20,6 +22,7 @@ import WalletPage from "@/pages/wallet/WalletPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
 import NotFound from "@/pages/NotFound";
 import OwnerComplaintsPage from "./pages/owner/OwnerComplaintsPage";
+import OwnerByPlatePage from "@/pages/owner/OwnerByPlatePage";
 
 const queryClient = new QueryClient();
 
@@ -48,10 +51,14 @@ const App = () => (
               <Route path="/camera" element={<CameraGuidelinesPage />} />
               <Route path="/camera/record" element={<CameraRecordPage />} />
               <Route path="/camera/preview" element={<VideoPreviewPage />} />
+              <Route path="/photo-capture" element={<PhotoCapturePage />} />
+              <Route path="/photo-confirm" element={<PhotoConfirmPage />} />
               <Route path="/action-select" element={<ActionSelectPage />} />
               <Route path="/complaint/status" element={<ComplaintStatusPage />} />
+              <Route path="/owner/by-plate/:plate" element={<OwnerByPlatePage />} />
               <Route path="/owner/complaints" element={<OwnerComplaintsPage />} />
             </Route>
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppInitializer>

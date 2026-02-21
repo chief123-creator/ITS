@@ -1,97 +1,82 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Phone, FileText, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Phone, FileText, Loader2 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import AppLayout from '@/components/AppLayout';
-import type { ActionType } from '@/types';
 
-const actions: { type: ActionType; title: string; desc: string; icon: typeof Phone; recommended?: boolean }[] = [
-  { type: 'direct_call', title: 'Direct Call', desc: 'Owner is contacted immediately. Faster resolution with timer countdown.', icon: Phone, recommended: true },
-  { type: 'official_issue', title: 'Official Issue', desc: 'Filed as an official complaint. Processed through authorities.', icon: FileText },
-];
-
-const ActionSelectPage = () => {
+export default function ActionSelectPage() {
   const navigate = useNavigate();
-  const { currentVideo, submitComplaint, isLoading, clearCurrentVideo } = useAppStore();
-  const [localError, setLocalError] = useState('');
+  const { currentVideo, detectedPlate, submitComplaint } = useAppStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const handleDirectCall = () => {
+    if (!detectedPlate) {
+      setError('No plate detected');
+      return;
+    }
+    navigate(`/owner/by-plate/${detectedPlate}`);
+  };
 
-  if (!currentVideo?.videoBlob) {
-    navigate('/camera');
-    return null;
-  }
+  const handleOfficialIssue = async () => {
+    if (!currentVideo) {
+      setError('No video recorded');
+      return;
+    }
+    if (!detectedPlate) {
+      setError('No plate detected');
+      return;
+    }
 
-  const handleSelect = async (actionType: ActionType) => {
-    setLocalError('');
-
-    const videoFile = new File([currentVideo.videoBlob], 'recording.mp4', { type: 'video/mp4' });
+    setLoading(true);
     const formData = new FormData();
+    const videoFile = new File([currentVideo.videoBlob], 'recording.mp4', { type: 'video/mp4' });
     formData.append('video', videoFile);
     formData.append('vehicle_type', currentVideo.vehicleType || 'four_wheeler');
-    formData.append('action_type', actionType);
+    formData.append('action_type', 'official_issue');
     formData.append('latitude', currentVideo.latitude.toString());
     formData.append('longitude', currentVideo.longitude.toString());
     formData.append('recorded_at', new Date().toISOString());
+    formData.append('plate_number', detectedPlate);
 
     try {
-      await submitComplaint(formData);
-      clearCurrentVideo();
+      const complaint = await submitComplaint(formData);
       navigate('/complaint/status');
     } catch (err: any) {
-      setLocalError(err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Choose Action</h1>
-        <p className="text-muted-foreground mb-8">How should this violation be handled?</p>
-
-        {localError && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-center gap-2"
-          >
-            <AlertCircle className="h-4 w-4 shrink-0" /> {localError}
-          </motion.div>
-        )}
-
+      <div className="page-container space-y-6">
+        <h1 className="page-title">Choose Action</h1>
+        {error && <div className="text-destructive bg-destructive/10 p-3 rounded">{error}</div>}
         <div className="space-y-4">
-          {actions.map((action) => (
-            <motion.button
-              key={action.type}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={() => handleSelect(action.type)}
-              disabled={isLoading}
-              className={`w-full p-6 rounded-2xl border-2 text-left transition-all flex items-start gap-4 ${
-                action.recommended ? 'border-primary bg-primary/5' : 'border-border bg-card hover:border-primary/30'
-              } disabled:opacity-50`}>
-              <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${
-                action.recommended ? 'gradient-primary' : 'bg-muted'
-              }`}>
-                <action.icon className={`h-5 w-5 ${action.recommended ? 'text-primary-foreground' : 'text-foreground'}`} />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-foreground">{action.title}</p>
-                  {action.recommended && (
-                    <span className="px-2 py-0.5 rounded-full gradient-success text-xs font-medium text-success-foreground">
-                      Recommended
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">{action.desc}</p>
-              </div>
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mt-1" /> : <ArrowRight className="h-5 w-5 text-muted-foreground mt-1" />}
-            </motion.button>
-          ))}
+          <motion.button
+            onClick={handleDirectCall}
+            disabled={loading}
+            className="w-full p-6 bg-card border-2 border-success/25 rounded-2xl text-left"
+          >
+            <Phone className="w-6 h-6 text-success mb-2" />
+            <h3 className="font-bold text-lg">Direct Call</h3>
+            <p className="text-sm text-muted-foreground">Contact owner immediately</p>
+          </motion.button>
+          <motion.button
+            onClick={handleOfficialIssue}
+            disabled={loading}
+            className="w-full p-6 bg-card border border-border rounded-2xl text-left"
+          >
+            <FileText className="w-6 h-6 text-primary mb-2" />
+            <h3 className="font-bold text-lg">Official Issue</h3>
+            <p className="text-sm text-muted-foreground">Start 24h timer, owner must respond</p>
+          </motion.button>
         </div>
+        {loading && <Loader2 className="animate-spin mx-auto" />}
       </div>
     </AppLayout>
   );
-};
-
-export default ActionSelectPage;
+}

@@ -49,6 +49,10 @@ interface AppState {
   // Current complaint
   currentComplaint: Complaint | null;
 
+  // Plate detection
+  detectedPlate: string | null;
+  capturedImage: string | null;
+
   // Dashboard
   dashboardStats: DashboardStats | null;
   complaints: Complaint[];
@@ -69,6 +73,10 @@ interface AppState {
 
   // Complaint
   setCurrentComplaint: (complaint: Complaint | null) => void;
+
+  // Plate detection
+  setDetectedPlate: (plate: string | null) => void;
+  setCapturedImage: (image: string | null) => void;
 
   // Auth actions
   login: (email: string, password: string) => Promise<void>;
@@ -95,6 +103,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   error: null,
   currentVideo: null,
   currentComplaint: null,
+  detectedPlate: null,
+  capturedImage: null,
   dashboardStats: null,
   complaints: [],
   balance: null,
@@ -115,6 +125,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentVideo: (video) => set({ currentVideo: video }),
   clearCurrentVideo: () => set({ currentVideo: null }),
   setCurrentComplaint: (complaint) => set({ currentComplaint: complaint }),
+  setDetectedPlate: (plate) => set({ detectedPlate: plate }),
+  setCapturedImage: (image) => set({ capturedImage: image }),
 
   login: async (email, password) => {
     set({ isLoading: true, error: null });
@@ -166,7 +178,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  submitComplaint: async (formData) => {
+  submitComplaint: async (formData: FormData) => {
     set({ isLoading: true, error: null });
     try {
       const complaint = await api.createComplaint(formData);
@@ -243,4 +255,5 @@ export const useAppStore = create<AppState>((set, get) => ({
       throw error;
     }
   },
+  
 }));
