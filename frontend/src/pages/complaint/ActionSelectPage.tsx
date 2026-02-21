@@ -20,15 +20,18 @@ export default function ActionSelectPage() {
   };
 
   const handleOfficialIssue = async () => {
-    if (!currentVideo) {
-      setError('No video recorded');
-      return;
-    }
     if (!detectedPlate) {
-      setError('No plate detected');
+      setError('No plate detected. Please capture a photo first.');
       return;
     }
 
+    // If no video yet, go to camera record
+    if (!currentVideo) {
+      navigate('/camera/record');
+      return;
+    }
+
+    // Otherwise, submit complaint
     setLoading(true);
     const formData = new FormData();
     const videoFile = new File([currentVideo.videoBlob], 'recording.mp4', { type: 'video/mp4' });

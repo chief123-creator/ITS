@@ -39,26 +39,25 @@ const App = () => (
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/verify" element={<VerifyPage />} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/history" element={<HistoryPage />} />
-              <Route path="/rewards" element={<RewardsPage />} />
-              <Route path="/wallet" element={<WalletPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
+            {/* Routes that require Aadhaar verification */}
+            <Route path="/dashboard" element={<ProtectedRoute requireVerified={true}><DashboardPage /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute requireVerified={true}><HistoryPage /></ProtectedRoute>} />
+            <Route path="/rewards" element={<ProtectedRoute requireVerified={true}><RewardsPage /></ProtectedRoute>} />
+            <Route path="/wallet" element={<ProtectedRoute requireVerified={true}><WalletPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute requireVerified={true}><SettingsPage /></ProtectedRoute>} />
+            <Route path="/owner/complaints" element={<ProtectedRoute requireVerified={true}><OwnerComplaintsPage /></ProtectedRoute>} />
+            <Route path="/owner/by-plate/:plate" element={<ProtectedRoute requireVerified={true}><OwnerByPlatePage /></ProtectedRoute>} />
 
-            <Route element={<ProtectedRoute requireVerified={false} />}>
-              <Route path="/camera" element={<CameraGuidelinesPage />} />
-              <Route path="/camera/record" element={<CameraRecordPage />} />
-              <Route path="/camera/preview" element={<VideoPreviewPage />} />
-              <Route path="/photo-capture" element={<PhotoCapturePage />} />
-              <Route path="/photo-confirm" element={<PhotoConfirmPage />} />
-              <Route path="/action-select" element={<ActionSelectPage />} />
-              <Route path="/complaint/status" element={<ComplaintStatusPage />} />
-              <Route path="/owner/by-plate/:plate" element={<OwnerByPlatePage />} />
-              <Route path="/owner/complaints" element={<OwnerComplaintsPage />} />
-            </Route>
+            {/* Routes that don't require Aadhaar verification (but require login) */}
+            <Route path="/camera" element={<ProtectedRoute requireVerified={false}><CameraGuidelinesPage /></ProtectedRoute>} />
             
+            <Route path="/camera/preview" element={<ProtectedRoute requireVerified={false}><VideoPreviewPage /></ProtectedRoute>} />
+            <Route path="/photo-capture" element={<ProtectedRoute requireVerified={false}><PhotoCapturePage /></ProtectedRoute>} />
+            <Route path="/photo-confirm" element={<ProtectedRoute requireVerified={false}><PhotoConfirmPage /></ProtectedRoute>} />
+            <Route path="/camera/record" element={<ProtectedRoute requireVerified={false}><CameraRecordPage /></ProtectedRoute>} />
+            <Route path="/action-select" element={<ProtectedRoute requireVerified={false}><ActionSelectPage /></ProtectedRoute>} />
+            <Route path="/complaint/status" element={<ProtectedRoute requireVerified={false}><ComplaintStatusPage /></ProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppInitializer>

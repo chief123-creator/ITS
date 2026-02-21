@@ -1,110 +1,81 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/components/AppLayout';
-import { api } from '@/lib/api';
 import { useAppStore } from '@/store/useAppStore';
 
 export default function PhotoCapturePage() {
   const navigate = useNavigate();
-  const [image, setImage] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-    } catch (err) {
-      alert('Camera access denied');
+      if (videoRef.current) videoRef.current.srcObject = mediaStream;
+    } catch {
+      setError('Camera access denied');
     }
   };
 
   const capturePhoto = () => {
-    if (videoRef.current && stream) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-          setFile(file);
-          setImage(URL.createObjectURL(blob));
-        }
-      }, 'image/jpeg');
-      // Stop camera
-      stream.getTracks().forEach(track => track.stop());
+    if (videoRef.current && canvasRef.current) {
+      canvasRef.current.width = videoRef.current.videoWidth;
+      canvasRef.current.height = videoRef.current.videoHeight;
+      const ctx = canvasRef.current.getContext('2d');
+      ctx?.drawImage(videoRef.current, 0, 0);
+      const dataUrl = canvasRef.current.toDataURL('image/jpeg');
+      setPhoto(dataUrl);
+      stream?.getTracks().forEach(track => track.stop());
       setStream(null);
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) return;
-    setLoading(true);
-    const formData = new FormData();
-    formData.append('image', file);
-    try {
-      const result = await api.detectPlate(formData);
-      // Store plate and image in store (extend store)
-      useAppStore.getState().setDetectedPlate(result.plate);
-      useAppStore.getState().setCapturedImage(image);
-      navigate('/photo-confirm');
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const retake = () => {
+    setPhoto(null);
+    startCamera();
+  };
+
+  const confirmPhoto = async () => {
+    if (!photo) return;
+    // Convert data URL to blob and upload (mock detection for now)
+    const blob = await fetch(photo).then(res => res.blob());
+    const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+    
+    // Mock detected plate – replace with API call later
+    useAppStore.getState().setDetectedPlate('MH12AB1234');
+    useAppStore.getState().setCapturedImage(photo);
+    navigate('/photo-confirm');
   };
 
   return (
     <AppLayout>
-      <div className="page-container">
+      <div className="page-container space-y-4">
         <h1 className="page-title">Take Vehicle Photo</h1>
-        {!stream && !image && (
-          <div className="space-y-4">
-            <Button onClick={startCamera} className="w-full">
-              <Camera className="mr-2" /> Open Camera
-            </Button>
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="mr-2" /> Upload Photo
-            </Button>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) {
-                  setFile(f);
-                  setImage(URL.createObjectURL(f));
-                }
-              }}
-            />
-          </div>
+        {error && <p className="text-destructive">{error}</p>}
+        {!stream && !photo && (
+          <Button onClick={startCamera} className="w-full">Open Camera</Button>
         )}
         {stream && (
-          <div>
+          <>
             <video ref={videoRef} autoPlay className="w-full rounded-lg" />
-            <Button onClick={capturePhoto} className="mt-4 w-full">Capture</Button>
-          </div>
+            <Button onClick={capturePhoto} className="w-full">Capture</Button>
+          </>
         )}
-        {image && (
-          <div>
-            <img src={image} alt="Captured" className="w-full rounded-lg" />
-            <Button onClick={handleUpload} disabled={loading} className="mt-4 w-full">
-              {loading ? 'Detecting...' : 'Detect Plate'}
-            </Button>
-          </div>
+        {photo && (
+          <>
+            <img src={photo} alt="Captured" className="w-full rounded-lg" />
+            <div className="flex gap-2">
+              <Button onClick={retake} variant="outline" className="flex-1">Retake</Button>
+              <Button onClick={confirmPhoto} className="flex-1">Use Photo</Button>
+            </div>
+          </>
         )}
+        <canvas ref={canvasRef} style={{ display: 'none' }} />
       </div>
     </AppLayout>
   );

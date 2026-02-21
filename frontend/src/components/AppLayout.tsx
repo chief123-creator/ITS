@@ -14,7 +14,7 @@ import { useState } from 'react';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/camera', label: 'Report', icon: Camera },
+  { to: '/photo-capture', label: 'Report', icon: Camera },
   { to: '/history', label: 'History', icon: History },
   { to: '/rewards', label: 'Rewards', icon: Trophy },
   { to: '/wallet', label: 'Wallet', icon: Wallet },

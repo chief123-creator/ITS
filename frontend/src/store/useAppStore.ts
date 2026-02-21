@@ -43,7 +43,6 @@ interface AppState {
     longitude: number;
     duration: number;
     vehicleType?: 'two_wheeler' | 'four_wheeler' | 'truck';
-    actionType?: 'direct_call' | 'official_issue';
   } | null;
 
   // Current complaint
@@ -254,6 +253,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ error: error.message, isLoading: false });
       throw error;
     }
+    
   },
   
 }));

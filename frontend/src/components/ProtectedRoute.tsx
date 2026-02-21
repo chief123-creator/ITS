@@ -1,22 +1,17 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAppStore } from '@/store/useAppStore';
+// src/components/ProtectedRoute.tsx
+import { Navigate } from "react-router-dom";
+import { useAppStore } from "@/store/useAppStore";
 
-interface ProtectedRouteProps {
+interface Props {
+  children: React.ReactNode;
   requireVerified?: boolean;
 }
 
-const ProtectedRoute = ({ requireVerified = true }: ProtectedRouteProps) => {
+export default function ProtectedRoute({ children, requireVerified = true }: Props) {
   const { isAuthenticated, user } = useAppStore();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requireVerified && user && user.aadhaar_status !== 'verified') {
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (requireVerified && user?.aadhaar_status !== 'verified') {
     return <Navigate to="/verify" replace />;
   }
-
-  return <Outlet />;
-};
-
-export default ProtectedRoute;
+  return <>{children}</>;
+}

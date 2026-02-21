@@ -72,7 +72,7 @@ const DashboardPage = () => {
 
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <button onClick={() => navigate('/camera')}
+          <button onClick={() => navigate('/photo-capture')}
             className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all text-left group">
             <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center shrink-0">
               <Camera className="h-5 w-5 text-primary-foreground" />
