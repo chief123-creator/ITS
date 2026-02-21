@@ -161,6 +161,17 @@ class ApiClient {
     return this.request(`/complaints/${id}`);
   }
 
+  async getOwnerComplaints(): Promise<Complaint[]> {
+    return this.request('/complaints/owner');
+  }
+
+  async uploadOwnerProof(complaintId: string, formData: FormData): Promise<Complaint> {
+    return this.request(`/complaints/${complaintId}/owner-proof`, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   // Wallet
   async getBalance(): Promise<{ balance: number }> {
     return this.request('/wallet/balance');
