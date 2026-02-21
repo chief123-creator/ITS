@@ -209,6 +209,24 @@ class ApiClient {
 async getOwnerByPlate(plate: string): Promise<{ name: string; phone: string }> {
   return this.request(`/complaints/owner/by-plate/${plate}`);
 }
+
+  async updateDetection(imageId: string, plate: string): Promise<any> {
+    return this.request(`/images/${imageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ plate }),
+    });
+  }
+
+async uploadImage(formData: FormData): Promise<{ id: string; image_url: string }> {
+  return this.request('/images/upload', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+async getDetection(imageId: string): Promise<{ id: string; image_url: string; plate: string | null; status: string }> {
+  return this.request(`/images/${imageId}`);
+}
 }
 
 export const api = new ApiClient(API_BASE_URL);

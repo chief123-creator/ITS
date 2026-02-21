@@ -13,6 +13,7 @@ export default function PhotoCapturePage() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [cameraActive, setCameraActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Clean up stream on unmount
   useEffect(() => {
@@ -76,19 +77,19 @@ export default function PhotoCapturePage() {
 
 const confirmPhoto = async () => {
   if (!photo) return;
-  
-  // Convert data URL to blob
-  const blob = await fetch(photo).then(res => res.blob());
-  const formData = new FormData();
-  formData.append('image', blob, 'photo.jpg');
-  
+  setUploading(true);
   try {
-    const result = await api.detectPlate(formData);
-    useAppStore.getState().setDetectedPlate(result.plate);
-    useAppStore.getState().setCapturedImage(result.image_url); // store the URL instead of data URL
-    navigate('/photo-confirm');
+    const blob = await fetch(photo).then(res => res.blob());
+    const formData = new FormData();
+    formData.append('image', blob, 'photo.jpg');
+    const result = await api.uploadImage(formData);
+    useAppStore.getState().setImageId(result.id);
+    useAppStore.getState().setCapturedImage(result.image_url);
+    navigate('/waiting-detection');
   } catch (err: any) {
-    alert('Detection failed: ' + err.message);
+    setError('Upload failed: ' + err.message);
+  } finally {
+    setUploading(false);
   }
 };
 

@@ -51,6 +51,7 @@ interface AppState {
   // Plate detection
   detectedPlate: string | null;
   capturedImage: string | null;
+  imageId: string | null;
 
   // Dashboard
   dashboardStats: DashboardStats | null;
@@ -76,6 +77,7 @@ interface AppState {
   // Plate detection
   setDetectedPlate: (plate: string | null) => void;
   setCapturedImage: (image: string | null) => void;
+  setImageId: (id: string | null) => void;
 
   // Auth actions
   login: (email: string, password: string) => Promise<void>;
@@ -104,6 +106,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   currentComplaint: null,
   detectedPlate: null,
   capturedImage: null,
+  imageId: null,
   dashboardStats: null,
   complaints: [],
   balance: null,
@@ -126,6 +129,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentComplaint: (complaint) => set({ currentComplaint: complaint }),
   setDetectedPlate: (plate) => set({ detectedPlate: plate }),
   setCapturedImage: (image) => set({ capturedImage: image }),
+  setImageId: (id) => set({ imageId: id }),
 
   login: async (email, password) => {
     set({ isLoading: true, error: null });

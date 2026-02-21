@@ -6,6 +6,7 @@ from app.database import engine, Base
 from app.models import user, otp  # noqa
 from app.config import settings
 from app.api import detection
+from app.api import images
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -31,6 +32,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(complaints.router)
 app.include_router(detection.router)
+app.include_router(images.router)
 
 @app.get("/")
 def root():
