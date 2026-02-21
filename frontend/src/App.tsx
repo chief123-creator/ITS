@@ -19,6 +19,7 @@ import RewardsPage from "@/pages/rewards/RewardsPage";
 import WalletPage from "@/pages/wallet/WalletPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
 import NotFound from "@/pages/NotFound";
+import OwnerComplaintsPage from "./pages/owner/OwnerComplaintsPage";
 
 const queryClient = new QueryClient();
 
@@ -49,8 +50,8 @@ const App = () => (
               <Route path="/camera/preview" element={<VideoPreviewPage />} />
               <Route path="/action-select" element={<ActionSelectPage />} />
               <Route path="/complaint/status" element={<ComplaintStatusPage />} />
+              <Route path="/owner/complaints" element={<OwnerComplaintsPage />} />
             </Route>
-
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppInitializer>

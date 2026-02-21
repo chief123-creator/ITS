@@ -1,8 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  LayoutDashboard, Camera, History, Trophy, Wallet, Settings, LogOut, Shield, Menu, X
+  LayoutDashboard, Camera, History, Trophy, Wallet, Settings, LogOut, Shield, Menu, X, MoreVertical, Car
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAppStore } from '@/store/useAppStore';
 import { useState } from 'react';
 
@@ -13,6 +19,7 @@ const navItems = [
   { to: '/rewards', label: 'Rewards', icon: Trophy },
   { to: '/wallet', label: 'Wallet', icon: Wallet },
   { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/owner/complaints', label: 'Vehicle Complaints', icon: Car },
 ];
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -69,6 +76,17 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               <p className="text-sm font-medium text-foreground truncate">{user?.name || 'User'}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
             </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="p-1 hover:bg-muted rounded-md transition-colors">
+                <MoreVertical className="w-4 h-4 text-muted-foreground" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate('/owner/complaints')}>
+                  <Car className="w-4 h-4 mr-2" />
+                  Vehicle Complaints
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <button
             onClick={handleLogout}
