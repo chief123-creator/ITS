@@ -32,3 +32,4 @@ class ComplaintOut(ComplaintBase):
 class ComplaintStatusUpdate(BaseModel):
     status: Optional[ComplaintStatus] = None
     plate_number: Optional[str] = None
+    fine_amount: Optional[float] = None

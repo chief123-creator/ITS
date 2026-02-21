@@ -1,5 +1,6 @@
 import os
 import shutil
+import logging
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -11,8 +12,13 @@ from app.api import deps
 from app.database import get_db
 from app.config import settings
 from app.models.complaint import VehicleType, ActionType, ComplaintStatus
+from app.services.sms_service import SMSService
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
+
+# Initialize SMS service and logger
+logger = logging.getLogger(__name__)
+sms_service = SMSService()
 
 @router.post("/", response_model=schemas.ComplaintOut)
 async def create_complaint(
@@ -169,3 +175,55 @@ def download_video(
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Video file not found")
     return FileResponse(file_path, media_type="video/mp4", filename=video_url)
+
+
+# Admin endpoint to update complaint (apply fine, resolve, etc.)
+@router.put("/{complaint_id}", response_model=schemas.ComplaintOut)
+def admin_update_complaint(
+    complaint_id: str,
+    update_data: schemas.ComplaintStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(deps.get_current_admin)
+):
+    """
+    Admin endpoint to update complaint status and apply fine.
+    When status is changed to 'fine_applied', SMS is automatically sent.
+    """
+    complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+
+    # Update fields
+    if update_data.plate_number is not None:
+        complaint.plate_number = str(update_data.plate_number)
+    
+    if update_data.status is not None:
+        old_status = complaint.status
+        complaint.status = update_data.status
+        
+        # If fine is being applied, send SMS notification
+        if update_data.status == ComplaintStatus.FINE_APPLIED and old_status != ComplaintStatus.FINE_APPLIED:
+            # Get fine amount from update or use default
+            fine_amount = update_data.fine_amount if update_data.fine_amount else 500
+            complaint.fine_amount = fine_amount
+            
+            # Generate payment link
+            payment_link = f"{settings.FRONTEND_URL}/payment?complaint_id={complaint_id}"
+            
+            # Send SMS notification
+            vehicle_number = complaint.plate_number or "UNKNOWN"
+            sms_result = sms_service.send_challan_notification(
+                vehicle_number=vehicle_number,
+                fine_amount=int(fine_amount),
+                payment_link=payment_link,
+                complaint_id=complaint_id
+            )
+            
+            logger.info(f"SMS notification result: {sms_result}")
+
+    db.commit()
+    db.refresh(complaint)
+    
+    c_data = schemas.ComplaintOut.model_validate(complaint).__dict__
+    c_data["video_url"] = f"/uploads/{complaint.video_url}"
+    return schemas.ComplaintOut(**c_data)

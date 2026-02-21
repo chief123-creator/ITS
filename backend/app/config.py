@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     # Razorpay Configuration
     razorpay_key_id: str = "your_razorpay_key_id_here"
     razorpay_key_secret: str = "your_razorpay_key_secret_here"
+    
+    # SMS Configuration (MSG91)
+    msg91_api_key: str = ""
+    msg91_sender_id: str = "TRAFIC"
+    demo_phone_numbers: str = ""
+    support_phone: str = "8989563650"
 
     class Config:
         env_file = ".env"
