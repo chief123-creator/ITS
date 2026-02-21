@@ -1,10 +1,7 @@
-from supabase import create_client, Client
-from app.config import settings
+from supabase import create_client
+from app.config import SUPABASE_URL, SUPABASE_SERVICE_KEY
 
-supabase: Client = None
-
-def get_supabase() -> Client:
-    global supabase
-    if supabase is None:
-        supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-    return supabase
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_SERVICE_KEY
+)
