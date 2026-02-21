@@ -12,7 +12,7 @@ export default function WaitingForDetectionPage() {
 
   useEffect(() => {
     if (!imageId) {
-      navigate('/photo-capture');
+      navigate('/camera');
       return;
     }
     const interval = setInterval(async () => {

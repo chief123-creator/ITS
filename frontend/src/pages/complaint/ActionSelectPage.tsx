@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Phone, FileText, Loader2 } from 'lucide-react';
@@ -7,9 +7,15 @@ import AppLayout from '@/components/AppLayout';
 
 export default function ActionSelectPage() {
   const navigate = useNavigate();
-  const { currentVideo, detectedPlate, submitComplaint } = useAppStore();
+  const { currentVideo, detectedPlate, submitComplaint, setDetectedPlate } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  useEffect(() => {
+    if (!detectedPlate) {
+      setDetectedPlate('MH12AB1234'); // mock plate for demo
+    }
+  }, []);
   
   const handleDirectCall = () => {
     if (!detectedPlate) {
@@ -25,6 +31,8 @@ export default function ActionSelectPage() {
       return;
     }
 
+    // this is mock data
+    
     // If no video yet, go to camera record
     if (!currentVideo) {
       navigate('/camera/record');

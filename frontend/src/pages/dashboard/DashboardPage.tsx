@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  FileText, AlertTriangle, Trophy, TrendingUp, Shield, Camera, History, ArrowRight, Clock
+  FileText, AlertTriangle, Trophy, TrendingUp, Shield, Camera, History, ArrowRight, Clock, MoreVertical
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import AppLayout from '@/components/AppLayout';
@@ -72,8 +72,8 @@ const DashboardPage = () => {
 
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <button onClick={() => navigate('/photo-capture')}
-            className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all text-left group">
+          <div role="button" onClick={() => navigate('/camera')}
+            className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all text-left group cursor-pointer">
             <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center shrink-0">
               <Camera className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -81,8 +81,14 @@ const DashboardPage = () => {
               <p className="font-semibold text-foreground">New Report</p>
               <p className="text-sm text-muted-foreground">Record & submit a violation</p>
             </div>
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-          </button>
+            <div className="flex items-center gap-2">
+              <button onClick={(e) => { e.stopPropagation(); navigate('/camera/record?autoStart=1'); }}
+                className="p-2 rounded-md hover:bg-muted/50 text-muted-foreground">
+                <MoreVertical className="h-4 w-4" />
+              </button>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </div>
           <button onClick={() => navigate('/history')}
             className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all text-left group">
             <div className="h-12 w-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">

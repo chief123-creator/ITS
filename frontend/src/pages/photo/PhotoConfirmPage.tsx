@@ -19,7 +19,7 @@ export default function PhotoConfirmPage() {
   const handleNo = () => {
     setDetectedPlate(null);
     setCapturedImage(null);
-    navigate('/photo-capture');
+    navigate('/camera');
   };
 
   return (

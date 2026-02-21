@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Circle, Square, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -7,6 +7,7 @@ import AppLayout from '@/components/AppLayout';
 
 const CameraRecordPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setCurrentVideo } = useAppStore();
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -14,7 +15,7 @@ const CameraRecordPage = () => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [recording, setRecording] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState('');
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -34,8 +35,8 @@ const CameraRecordPage = () => {
       }
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => setLocation({ lat: 0, lng: 0 })
+        (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => setCoords({ lat: 0, lng: 0 })
       );
     };
     init();
@@ -51,8 +52,8 @@ const CameraRecordPage = () => {
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
       setCurrentVideo({
         videoBlob: blob,
-        latitude: location?.lat || 0,
-        longitude: location?.lng || 0,
+        latitude: coords?.lat || 0,
+        longitude: coords?.lng || 0,
         duration,
       });
       stream.getTracks().forEach((t) => t.stop());
@@ -63,13 +64,21 @@ const CameraRecordPage = () => {
     setRecording(true);
     setDuration(0);
     timerRef.current = setInterval(() => setDuration((d) => d + 1), 1000);
-  }, [stream, location, navigate, setCurrentVideo, duration]);
+  }, [stream, coords, navigate, setCurrentVideo, duration]);
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
     setRecording(false);
     if (timerRef.current) clearInterval(timerRef.current);
   }, []);
+
+  const autoStart = new URLSearchParams(location.search).get('autoStart') === '1' || new URLSearchParams(location.search).get('autoStart') === 'true';
+
+  useEffect(() => {
+    if (stream && autoStart && !recording) {
+      startRecording();
+    }
+  }, [stream, autoStart, recording, startRecording]);
 
   const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
@@ -109,9 +118,9 @@ const CameraRecordPage = () => {
           </div>
 
           {/* Location */}
-          {location && (
+          {coords && (
             <div className="absolute bottom-4 left-4 flex items-center gap-1.5 bg-foreground/70 text-background px-3 py-1.5 rounded-full text-xs">
-              <MapPin className="h-3 w-3" /> {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+              <MapPin className="h-3 w-3" /> {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
             </div>
           )}
         </div>
