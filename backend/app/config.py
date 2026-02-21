@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
     UPLOAD_DIR: str = "uploads"
     FRONTEND_URL: str = "http://localhost:5173"
+    SUPABASE_BUCKET: str = "complaints"
 
     class Config:
         env_file = ".env"

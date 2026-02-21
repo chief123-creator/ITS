@@ -12,6 +12,7 @@ from app.database import get_db
 from app.config import settings
 from app.models.complaint import VehicleType, ActionType, ComplaintStatus
 from app.models import vehicle
+from app.supabase_client import get_supabase
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
 
@@ -72,6 +73,42 @@ async def create_complaint(
     db.add(complaint)
     db.commit()
     db.refresh(complaint)
+
+    # After local commit, upload to Supabase
+    try:
+        supabase = get_supabase()
+        # 1. Upload video to Supabase Storage
+        video_file_path = file_path  # local path
+        with open(video_file_path, "rb") as f:
+            file_name = f"{complaint.id}.mp4"
+            supabase.storage.from_(settings.SUPABASE_BUCKET).upload(
+                path=f"complaints/{file_name}",
+                file=f,
+                file_options={"content-type": "video/mp4"}
+            )
+        video_url = supabase.storage.from_(settings.SUPABASE_BUCKET).get_public_url(f"complaints/{file_name}")
+        
+        # 2. Prepare record for Supabase table (adjust table name as needed)
+        supabase_record = {
+            "id": complaint.id,
+            "user_id": str(complaint.user_id),
+            "video_url": video_url,
+            "latitude": latitude,
+            "longitude": longitude,
+            "recorded_at": rec_at.isoformat(),
+            "vehicle_type": vehicle_type,
+            "action_type": action_type,
+            "status": complaint.status.value,
+            "plate_number": None,
+            "fine_amount": 0,
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        supabase.table("complaints").insert(supabase_record).execute()
+        print(f"✅ Synced complaint {complaint.id} to Supabase")
+    except Exception as e:
+        # Log error but don't fail the request – local save already succeeded
+        print(f"⚠️ Supabase sync failed: {e}")
 
     # Build full URL for response
     complaint_data = schemas.ComplaintOut.model_validate(complaint).model_dump()
@@ -255,3 +292,4 @@ async def upload_owner_proof(
     if proof_url_val is not None:
         c_data["proof_url"] = f"/uploads/{proof_url_val}"
     return schemas.ComplaintOut(**c_data)  
+
