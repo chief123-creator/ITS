@@ -11,7 +11,7 @@ from app.api import deps
 from app.database import get_db
 from app.config import settings
 from app.models.complaint import VehicleType, ActionType, ComplaintStatus
-from app.models import vehicle
+from app.models.vehicle import Vehicle
 from app.supabase_client import get_supabase
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
@@ -25,6 +25,7 @@ async def create_complaint(
     longitude: float = Form(...),
     recorded_at: str = Form(...),
     db: Session = Depends(get_db),
+    plate_number: Optional[str] = Form(None),  # add this
     current_user: models.User = Depends(deps.get_current_user)  # Changed from get_current_verified_user
 ):
     # Validate enums
@@ -68,6 +69,7 @@ async def create_complaint(
         recorded_at=rec_at,
         vehicle_type=v_type,
         action_type=a_type,
+        plate_number=plate_number,
         status=ComplaintStatus.PENDING
     )
     db.add(complaint)
@@ -99,7 +101,7 @@ async def create_complaint(
             "vehicle_type": vehicle_type,
             "action_type": action_type,
             "status": complaint.status.value,
-            "plate_number": None,
+            "plate_number": plate_number,
             "fine_amount": 0,
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
@@ -136,6 +138,16 @@ def list_complaints(
         c_data["video_url"] = f"/uploads/{c.video_url}"
         result.append(schemas.ComplaintOut(**c_data))
     return result
+
+@router.get("/owner/by-plate/{plate}")
+def get_owner_by_plate(plate: str, db: Session = Depends(get_db)):
+    vehicle = db.query(Vehicle).filter(Vehicle.plate_number == plate).first()
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    owner = db.query(models.User).filter(models.User.id == vehicle.owner_id).first()
+    if not owner:
+        raise HTTPException(status_code=404, detail="Owner not found")
+    return {"name": owner.name, "phone": owner.phone}
 
 @router.get("/{complaint_id}", response_model=schemas.ComplaintOut)
 def get_complaint(
@@ -291,5 +303,4 @@ async def upload_owner_proof(
     proof_url_val = getattr(complaint, 'proof_url', None)
     if proof_url_val is not None:
         c_data["proof_url"] = f"/uploads/{proof_url_val}"
-    return schemas.ComplaintOut(**c_data)  
-
+    return schemas.ComplaintOut(**c_data)

@@ -197,6 +197,18 @@ class ApiClient {
   async getDashboardStats(): Promise<DashboardStats> {
     return this.request('/dashboard/stats');
   }
+
+  // Owner  
+  async detectPlate(formData: FormData): Promise<{ plate: string }> {
+  return this.request('/detect/plate', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+async getOwnerByPlate(plate: string): Promise<{ name: string; phone: string }> {
+  return this.request(`/complaints/owner/by-plate/${plate}`);
+}
 }
 
 export const api = new ApiClient(API_BASE_URL);

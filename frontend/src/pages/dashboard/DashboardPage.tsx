@@ -18,10 +18,10 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const { user, dashboardStats, complaints, isLoading, getDashboardStats, getComplaints } = useAppStore();
 
-  useEffect(() => {
-    getDashboardStats();
-    getComplaints();
-  }, [getDashboardStats, getComplaints]);
+  // useEffect(() => {
+  //   getDashboardStats();
+  //   getComplaints();
+  // }, [getDashboardStats, getComplaints]);
 
   const statCards = [
     { label: 'Total Reports', value: dashboardStats?.totalReports || 0, icon: FileText, gradient: 'gradient-primary' },

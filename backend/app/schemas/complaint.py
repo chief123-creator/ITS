@@ -11,9 +11,6 @@ class ComplaintBase(BaseModel):
     longitude: float
     recorded_at: datetime
 
-class ComplaintCreate(ComplaintBase):
-    pass
-
 class ComplaintOut(ComplaintBase):
     id: UUID
     user_id: UUID
@@ -32,3 +29,7 @@ class ComplaintOut(ComplaintBase):
 class ComplaintStatusUpdate(BaseModel):
     status: Optional[ComplaintStatus] = None
     plate_number: Optional[str] = None
+
+class ComplaintCreate(ComplaintBase):
+    plate_number: Optional[str] = None  # new optional field
+    
