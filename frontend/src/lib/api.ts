@@ -199,12 +199,12 @@ class ApiClient {
   }
 
   // Owner  
-  async detectPlate(formData: FormData): Promise<{ plate: string }> {
-  return this.request('/detect/plate', {
-    method: 'POST',
-    body: formData,
-  });
-}
+  async detectPlate(formData: FormData): Promise<{ plate: string; image_url?: string }> {
+    return this.request('/detect/plate', {
+      method: 'POST',
+      body: formData,
+    });
+  }
 
 async getOwnerByPlate(plate: string): Promise<{ name: string; phone: string }> {
   return this.request(`/complaints/owner/by-plate/${plate}`);
