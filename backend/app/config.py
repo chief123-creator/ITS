@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
     UPLOAD_DIR: str = "uploads"
     FRONTEND_URL: str = "http://localhost:5173"
+    
+    # Razorpay Configuration
+    razorpay_key_id: str = "your_razorpay_key_id_here"
+    razorpay_key_secret: str = "your_razorpay_key_secret_here"
 
     class Config:
         env_file = ".env"

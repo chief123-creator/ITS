@@ -90,6 +90,13 @@ class ApiClient {
         window.location.href = '/login';
         throw new Error('Session expired. Please log in again.');
       }
+      
+      // For 404 errors, just throw without logging out
+      if (response.status === 404) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Resource not found: ${endpoint}`);
+      }
+      
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || `Request failed with status ${response.status}`);
     }
@@ -162,18 +169,82 @@ class ApiClient {
   }
 
   // Wallet
-  async getBalance(): Promise<{ balance: number }> {
-    return this.request('/wallet/balance');
+  async getBalance(): Promise<{ balance: number; owner_type: string; owner_id: string }> {
+    return this.request('/api/wallets/balance');
   }
 
   async getTransactions(): Promise<Transaction[]> {
-    return this.request('/wallet/transactions');
+    return this.request('/api/wallets/transactions');
   }
 
-  async requestWithdraw(amount: number): Promise<{ status: string }> {
-    return this.request('/wallet/withdraw', {
+  async requestWithdraw(amount: number): Promise<{ id: string; status: string }> {
+    return this.request('/api/withdrawals', {
       method: 'POST',
       body: JSON.stringify({ amount }),
+    });
+  }
+
+  async getWithdrawals(): Promise<{ user_id: string; withdrawals: any[] }> {
+    return this.request('/api/withdrawals');
+  }
+
+  // Payments
+  async createPaymentOrder(complaint_id: string): Promise<{ order_id: string; amount: number; currency: string }> {
+    return this.request('/api/payments/create-order', {
+      method: 'POST',
+      body: JSON.stringify({ complaint_id }),
+    });
+  }
+
+  async processPaymentSuccess(data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    complaint_id: string;
+    amount: number;
+  }): Promise<{ message: string; payment_id: string }> {
+    return this.request('/api/payments/payment-success', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getComplaintPaymentHistory(complaint_id: string): Promise<any> {
+    return this.request(`/api/payments/complaint/${complaint_id}`);
+  }
+
+  async getReporterPaymentHistory(reporter_id: string): Promise<any> {
+    return this.request(`/api/payments/reporter/${reporter_id}`);
+  }
+
+  // Payment Methods
+  async addPaymentMethod(data: {
+    method_type: 'UPI' | 'BANK';
+    upi_id?: string;
+    account_holder_name?: string;
+    account_number?: string;
+    ifsc_code?: string;
+    bank_name?: string;
+  }): Promise<any> {
+    return this.request('/api/payment-methods', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getPaymentMethods(): Promise<any[]> {
+    return this.request('/api/payment-methods');
+  }
+
+  async deletePaymentMethod(id: string): Promise<{ message: string }> {
+    return this.request(`/api/payment-methods/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async setPrimaryPaymentMethod(id: string): Promise<any> {
+    return this.request(`/api/payment-methods/${id}/set-primary`, {
+      method: 'POST',
     });
   }
 

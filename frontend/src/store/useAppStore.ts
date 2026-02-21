@@ -183,8 +183,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       const stats = await api.getDashboardStats();
       set({ dashboardStats: stats, isLoading: false });
     } catch (error: any) {
-      set({ error: error.message, isLoading: false });
-      throw error;
+      // Silently fail for 404 errors (endpoint not implemented yet)
+      if (error.message.includes('not found') || error.message.includes('404')) {
+        set({ isLoading: false });
+      } else {
+        set({ error: error.message, isLoading: false });
+        throw error;
+      }
     }
   },
 
@@ -227,8 +232,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       const rewards = await api.getRewards();
       set({ rewards, isLoading: false });
     } catch (error: any) {
-      set({ error: error.message, isLoading: false });
-      throw error;
+      // Silently fail for 404 errors (endpoint not implemented yet)
+      if (error.message.includes('not found') || error.message.includes('404')) {
+        set({ isLoading: false });
+      } else {
+        set({ error: error.message, isLoading: false });
+        throw error;
+      }
     }
   },
 

@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.api import auth, users, complaints
+from app.api import auth, users, complaints, payments, wallets, withdrawals, payment_methods
 from app.database import engine, Base
-from app.models import user, otp  # noqa
+from app.models import user, otp, payment, wallet, transaction, withdrawal, payment_method  # noqa
 from app.config import settings
 
 # Create tables
@@ -29,6 +29,10 @@ app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads"
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(complaints.router)
+app.include_router(payments.router)
+app.include_router(wallets.router)
+app.include_router(withdrawals.router)
+app.include_router(payment_methods.router)
 
 @app.get("/")
 def root():
