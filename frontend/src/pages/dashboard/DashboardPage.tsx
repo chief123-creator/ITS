@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import AppLayout from '@/components/AppLayout';
+import { api } from '@/lib/api';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pending', className: 'bg-warning/10 text-warning' },
@@ -16,16 +17,33 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 
 const DashboardPage = () => {
   const navigate = useNavigate();
-  const { user, dashboardStats, complaints, isLoading, getDashboardStats, getComplaints } = useAppStore();
+  const { user, dashboardStats, getDashboardStats } = useAppStore();
+  const [totalReports, setTotalReports] = useState(0);
+  const [activeIssues, setActiveIssues] = useState(0);
+  const [recentReports, setRecentReports] = useState<any[]>([]);
+  const [activeIssuesList, setActiveIssuesList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   getDashboardStats();
-  //   getComplaints();
-  // }, [getDashboardStats, getComplaints]);
+  useEffect(() => {
+    // Fetch complaints for counts and recent reports
+    api.getComplaints()
+      .then(data => {
+        setTotalReports(data.length);
+        const active = data.filter(c => c.status === 'timer_running');
+        setActiveIssues(active.length);
+        setActiveIssuesList(active);
+        setRecentReports(data.slice(0, 5)); // latest 5
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+
+    // Optionally fetch dashboard stats if backend supports it
+    // getDashboardStats().catch(() => {});
+  }, []);
 
   const statCards = [
-    { label: 'Total Reports', value: dashboardStats?.totalReports || 0, icon: FileText, gradient: 'gradient-primary' },
-    { label: 'Active Issues', value: dashboardStats?.activeIssues || 0, icon: AlertTriangle, gradient: 'gradient-warning' },
+    { label: 'Total Reports', value: totalReports, icon: FileText, gradient: 'gradient-primary' },
+    { label: 'Active Issues', value: activeIssues, icon: AlertTriangle, gradient: 'gradient-warning' },
     { label: 'Reward Points', value: dashboardStats?.rewards || 0, icon: Trophy, gradient: 'gradient-success' },
     { label: 'Success Rate', value: `${dashboardStats?.successRate || 0}%`, icon: TrendingUp, gradient: 'gradient-primary' },
   ];
@@ -72,7 +90,7 @@ const DashboardPage = () => {
 
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 gap-4 mb-8">
-          <div role="button" onClick={() => navigate('/camera')}
+          <div role="button" onClick={() => navigate('/photo-capture')}
             className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all text-left group cursor-pointer">
             <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center shrink-0">
               <Camera className="h-5 w-5 text-primary-foreground" />
@@ -102,27 +120,63 @@ const DashboardPage = () => {
           </button>
         </div>
 
+        {/* Active Issues Section */}
+        {activeIssuesList.length > 0 && (
+          <div className="bg-card rounded-2xl border border-border p-6 mb-8">
+            <h2 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Active Issues ({activeIssuesList.length})
+            </h2>
+            <div className="space-y-3">
+              {activeIssuesList.map((c) => (
+                <div key={c.id} className="flex items-center justify-between p-3 rounded-xl bg-warning/5 border border-warning/20">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-warning" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground capitalize">{c.vehicle_type.replace('_', ' ')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.plate_number || 'No plate'} • {new Date(c.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    Timer Running
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Recent Reports */}
         <div className="bg-card rounded-2xl border border-border p-6">
           <h2 className="font-semibold text-foreground mb-4">Recent Reports</h2>
-          <div className="space-y-3">
-            {complaints.slice(0, 5).map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+          {loading ? (
+            <p className="text-center py-4">Loading...</p>
+          ) : recentReports.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">No reports yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {recentReports.map((c) => (
+                <div key={c.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground capitalize">{c.vehicle_type.replace('_', ' ')}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground capitalize">{c.vehicle_type.replace('_', ' ')}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</p>
-                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[c.status]?.className || ''}`}>
+                    {statusConfig[c.status]?.label || c.status}
+                  </span>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[c.status]?.className || ''}`}>
-                  {statusConfig[c.status]?.label || c.status}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>

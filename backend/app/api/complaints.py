@@ -120,7 +120,7 @@ async def create_complaint(
                 "username": current_user.name,
                 "email": current_user.email,
                 "location": "Jabalpur",
-                "vehicle_number": "MH12AB1234",
+                "vehicle_number": "MP20MN6927",
                 "status": "pending",
                 "video_url": video_url,
                 "created_at": datetime.utcnow().isoformat(),

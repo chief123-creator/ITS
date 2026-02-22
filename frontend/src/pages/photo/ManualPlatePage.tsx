@@ -4,15 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/components/AppLayout';
 import { useAppStore } from '@/store/useAppStore';
-import { api } from '@/lib/api';
 
 export default function ManualPlatePage() {
   const navigate = useNavigate();
-  const { imageId, capturedImage, setDetectedPlate } = useAppStore();
+  const { capturedImage, setDetectedPlate } = useAppStore();
   const [plate, setPlate] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!plate.trim()) {
       setError('Please enter a plate number');
       return;
@@ -28,15 +27,18 @@ export default function ManualPlatePage() {
         {capturedImage && (
           <img src={capturedImage} alt="Vehicle" className="w-full rounded-lg border" />
         )}
-        <Input
-          placeholder="Enter plate (e.g., MH12AB1234)"
-          value={plate}
-          onChange={(e) => setPlate(e.target.value.toUpperCase())}
-        />
-        {error && <p className="text-destructive text-sm">{error}</p>}
-        <Button onClick={handleSubmit} className="w-full">
-          Continue
-        </Button>
+        <div className="space-y-4">
+          <Input
+            placeholder="Enter plate number (e.g., MH12AB1234)"
+            value={plate}
+            onChange={(e) => setPlate(e.target.value)}
+            className="uppercase"
+          />
+          {error && <p className="text-destructive text-sm">{error}</p>}
+          <Button onClick={handleSubmit} className="w-full">
+            Continue
+          </Button>
+        </div>
       </div>
     </AppLayout>
   );
