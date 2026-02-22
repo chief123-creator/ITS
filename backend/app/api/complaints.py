@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from uuid import uuid4
+import uuid
 from typing import List, Optional
 from datetime import datetime
 from app import models, schemas
@@ -13,6 +14,7 @@ from app.config import settings
 from app.models.complaint import VehicleType, ActionType, ComplaintStatus
 from app.models.vehicle import Vehicle
 from app.supabase_client import get_supabase
+
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
 
@@ -106,8 +108,29 @@ async def create_complaint(
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
-        supabase.table("complaints").insert(supabase_record).execute()
-        print(f"✅ Synced complaint {complaint.id} to Supabase")
+        # supabase.table("complaints").insert(supabase_record).execute()
+        # print(f"✅ Synced complaint {complaint.id} to Supabase")
+        
+        # 3. Insert a record for ML processing into `ml_data` table
+        try:
+            supabase = get_supabase()
+            ml_record = {
+                "id": str(uuid.uuid4()),
+                "complaint_id": complaint.id,
+                "username": current_user.name,
+                "email": current_user.email,
+                "location": "Jabalpur",
+                "vehicle_number": "MH12AB1234",
+                "status": "pending",
+                "video_url": video_url,
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat()
+            }
+            response = supabase.table("ml_data").insert(ml_record).execute()
+            print("✅ ML data inserted:", response)
+            print(f"✅ Inserted into ml_data: {complaint.id}")
+        except Exception as e:
+            print(f"❌ Failed to insert into ml_data: {e}")
     except Exception as e:
         # Log error but don't fail the request – local save already succeeded
         print(f"⚠️ Supabase sync failed: {e}")

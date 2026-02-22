@@ -7,6 +7,7 @@ from app.models import user, otp  # noqa
 from app.config import settings
 from app.api import detection
 from app.api import images
+from app.api import ml
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -33,6 +34,7 @@ app.include_router(users.router)
 app.include_router(complaints.router)
 app.include_router(detection.router)
 app.include_router(images.router)
+app.include_router(ml.router)
 
 @app.get("/")
 def root():
